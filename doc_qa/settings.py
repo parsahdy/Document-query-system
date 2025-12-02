@@ -60,11 +60,11 @@ WSGI_APPLICATION = 'doc_qa.wsgi.application'
 
 
 # Database
-import os
 from environ import Env
+import os
 
 env = Env()
-env.read_env(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../.env'))
+env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 DATABASES = {
     'default': {
