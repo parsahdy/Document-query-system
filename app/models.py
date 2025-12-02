@@ -37,11 +37,11 @@ class Document(models.Model):
         verbose_name = "Document"
         verbose_name_plural = "Documents"
       
-        def __str__(self):
-            return self.title
-        
-        def get_tag_names(self):
-            return ", ".join(tag.name for tag in self.tags.all())
+    def __str__(self):
+        return self.title
+    
+    def get_tag_names(self):
+        return ", ".join(tag.name for tag in self.tags.all())
         
 class Query(models.Model):
     question = models.TextField(validators=[MinLengthValidator(1)])
