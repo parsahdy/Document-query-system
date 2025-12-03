@@ -12,7 +12,7 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'short_content', 'get_tags')
-    search_fields = ('title', 'content', 'tags')
+    search_fields = ('title', 'content')
     list_filter = ('created_at',)
     ordering = ('-created_at',)
     readonly_fields = ('created_at',)
