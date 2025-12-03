@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
@@ -41,7 +41,8 @@ class SimpleTFIDFRetriever:
             for idx in top_indices
             if similarities[idx] > self.min_similarity
         ]
-        
+        return results
+
     def add_documents(self, new_docs: List) -> None:
         self.docs.extend(new_docs)
         self.tfidf_matrix = self._build_index()
