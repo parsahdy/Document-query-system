@@ -7,9 +7,9 @@ from .retriever import SimpleTFIDFRetriever
 
 
 class RetrieverAPIView(APIView):
-    def get(self, request):
-        question = request.query_params.get("question", "").strip()
-        top_k = int(request.query_params.get("top_k", 3))
+    def post(self, request):
+        question = request.data.get("question", "").strip()
+        top_k = int(request.data.get("top_k", 3))
 
         if not question:
             return Response(
@@ -24,7 +24,7 @@ class RetrieverAPIView(APIView):
             return Response(cached_results, status=status.HTTP_200_OK)
 
         retriever = SimpleTFIDFRetriever()
-        results = retriever.query(question, top_k=3)
+        results = retriever.query(question, top_k=top_k)
 
         data = {
             "results" : [
