@@ -5,7 +5,6 @@ from django.utils import timezone
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True, db_index=True)
-    slug = models.SlugField(max_length=50, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
