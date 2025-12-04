@@ -6,7 +6,6 @@ import numpy as np
 from .models import Document
 
 
-
 class SimpleTFIDFRetriever:
     def __init__(self, docs=None, min_similarity: float = 0.0):
         if docs is None:
@@ -33,14 +32,15 @@ class SimpleTFIDFRetriever:
             return []
         
         query_vector = self.vectorizer.transform([question])
-        similarities = cosine_similarity(query_vector, self.tfidf_matrix).ravel()
-        top_indices =  np.argsort(similarities)[::-1][:top_k]
+        similarities = cosine_similarity(query_vector, self.tfidf_matrix)[0]
+        top_indices = np.argsort(similarities)[::-1][:top_k]
 
-        results = [
-            (self.docs[idx], float(similarities)[idx])
-            for idx in top_indices
-            if similarities[idx] > self.min_similarity
-        ]
+        results = []
+        for idx in top_indices:
+            similarity_score = similarities[idx]
+            if similarity_score > self.min_similarity:
+                results.append((self.docs[int(idx)], float(similarity_score)))
+        
         return results
 
     def add_documents(self, new_docs: List) -> None:
