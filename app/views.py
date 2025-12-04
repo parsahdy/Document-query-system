@@ -40,7 +40,7 @@ class RetrieverAPIView(APIView):
                 {
                     "id": doc.id,
                     "title": doc.title,
-                    "score": round(score, 4),
+                    "score": round(float(score), 4),
                     "content": doc.content[:200] + "..." if len(doc.content) > 200 else doc.content
                 }
                 for doc, score in results
