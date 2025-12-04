@@ -19,8 +19,13 @@ class RetrieverAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        query_obj = Query.objects.create(question=question,
-                                         processing_status="Processing")
+        try:
+            query_obj = Query.objects.get(question=question)
+        except:
+            query_obj = Query.objects.create(
+                question=question,
+                processing_status="Processing"
+            )
         
         cache_key = f"retreiver:{hash(question)}:{top_k}"
         cached_results = cache.get(cache_key)
