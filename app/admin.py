@@ -14,6 +14,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'short_content', 'get_tags')
     search_fields = ('title', 'content')
     list_filter = ('created_at',)
+    filter_horizontal = ("tags",)
     ordering = ('-created_at',)
     readonly_fields = ('created_at',)
 
