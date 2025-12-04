@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.cache import cache
+import numpy as np
 
 from .models import Query
 from .retriever import SimpleTFIDFRetriever
