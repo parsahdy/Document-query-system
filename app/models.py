@@ -40,7 +40,7 @@ class Document(models.Model):
         return self.title
         
 class Query(models.Model):
-    question = models.TextField(validators=[MinLengthValidator(1)])
+    question = models.TextField(validators=[MinLengthValidator(1)], unique=True)
     answer = models.TextField(blank=True)
     related_docs = models.ManyToManyField(Document,
                                           related_name="queries",
