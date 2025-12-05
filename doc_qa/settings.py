@@ -123,3 +123,5 @@ CACHES = {
         "LOCATION": "redis://redis:6379/1",
     }
 }
+
+HUGGINGFACE_API_TOKEN = env("HUGGINGFACE_API_TOKEN")
