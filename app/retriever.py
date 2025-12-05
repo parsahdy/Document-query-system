@@ -39,7 +39,7 @@ class SimpleTFIDFRetriever:
         for idx in top_indices:
             similarity_score = similarities[idx]
             if similarity_score > self.min_similarity:
-                results.append((self.docs[int(idx)], float(similarity_score)))
+                results.append((self.docs[idx], similarity_score.item()))
         
         return results
 
