@@ -1,4 +1,4 @@
-from langchain import LLMChain, PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_community.llms import HuggingFaceHub
 from django.conf import settings
 
@@ -7,7 +7,7 @@ from .retriever import SimpleTFIDFRetriever
 
 api_token = settings.HUGGINGFACE_API_TOKEN
 
-hf = HuggingFaceHub(
+llm = HuggingFaceHub(
     repo_id="mistralai/Mistral-7B-Instruct-v0.2",
     task="text-generation",
     huggingfacehub_api_token=api_token,
@@ -30,7 +30,7 @@ prompt = PromptTemplate(
     template=template
 )
 
-chain = LLMChain(llm=hf, prompt=prompt)
+chain = prompt | llm
 
 
 def answer_with_document(question, top_k=3):
