@@ -1,20 +1,21 @@
 from langchain_core.prompts import PromptTemplate
-from langchain_community.llms import HuggingFaceHub
+from langchain_huggingface import HuggingFaceEndpoint
 from django.conf import settings
 
 from .retriever import SimpleTFIDFRetriever
 
-
 api_token = settings.HUGGINGFACE_API_TOKEN
 
-llm = HuggingFaceHub(
-    repo_id="mistralai/Mistral-7B-Instruct-v0.2",
-    task="text-generation",
+llm = HuggingFaceEndpoint(
+    repo_id="google/flan-t5-small",
     huggingfacehub_api_token=api_token,
-    model_kwargs={"temperature": 0.7, "max_new_tokens": 512}
+    task="text2text-generation",
+    max_new_tokens=512,
+    temperature=0.3,
 )
 
-template = """You are a helpful assistant.
+template = """
+You are a helpful assistant.
 Use ONLY the following relevant document chunks to answer the question.
 
 Documents:
@@ -22,7 +23,7 @@ Documents:
 
 Question: {question}
 
-Give a concise and accurate answer based strictly on the provided document chunks.
+Answer accurately using ONLY the documents.
 """
 
 prompt = PromptTemplate(
@@ -39,15 +40,21 @@ def answer_with_document(question, top_k=3):
 
     if not results:
         return "No relevant documents found.", []
-    
+
+    for idx, (doc, score) in enumerate(results):
+        print(f"[Retriever] doc={doc.title}, score={score}")
+
     docs_text = "\n\n".join([
-        f"- ({doc.title}): {doc.content[:200]}... - Score: {score:.4f}"
+        f"- ({doc.title}): {doc.content[:200]}... (Score: {score:.4f})"
         for doc, score in results
     ])
 
-    answer = chain.run({
-        "documents": docs_text,
-        "question": question  
-    })
+    try:
+        answer = chain.invoke({
+            "documents": docs_text,
+            "question": question,
+        })
+    except StopIteration:
+        return "LLM returned nothing (StopIteration).", results
 
     return answer, results
