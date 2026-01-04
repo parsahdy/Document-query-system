@@ -1,175 +1,145 @@
+```markdown
 # Document Query System
 
-A Django-based intelligent document retrieval and question-answering system that integrates:
-
-* Custom TF‑IDF retriever
-* LangChain-based LLM reasoning
-* Semantic embeddings (FAISS + MiniLM)
-* HuggingFaceHub LLM (Mistral-7B-Instruct-v0.2)
-
-This project lets users upload documents, retrieve the most relevant text chunks, and generate LLM-powered answers stored inside the database.
+A Django-based intelligent document retrieval and question-answering system that combines custom TF-IDF retrieval, semantic embeddings (FAISS + MiniLM), and LLM reasoning powered by HuggingFace InferenceClient [web:20][web:22].
 
 ---
 
-## 1. System Architecture
+## Features
 
-### **Backend:** Django + PostgreSQL/MySQL/SQLite
-
-* `Document` model: stores uploaded documents (title, content)
-* `Query` model: stores user questions and generated LLM answers
-
-### **Retrieval Layer**
-
-1. **SimpleTFIDFRetriever**
-
-   * Computes TF‑IDF vectors for all documents
-   * Returns top‑k most similar documents based on cosine similarity
-
-2. **Vector Store with LangChain**
-
-   * Uses `RecursiveCharacterTextSplitter` to create chunks
-   * Embeddings: `sentence-transformers/all-MiniLM-L6-v2`
-   * Index stored in **FAISS**
-   * Supports semantic retrieval of the most relevant chunks
-
-### **LLM Layer**
-
-* Powered by **HuggingFaceHub**
-* Model: `mistralai/Mistral-7B-Instruct-v0.2`
-* Used through LangChain runtime (`prompt | model` pipeline)
+* Custom TF-IDF retriever for document similarity
+* Semantic embeddings with FAISS vector store
+* LLM-powered answers using Llama-3.2-1B-Instruct via HuggingFace InferenceClient
+* PostgreSQL database for storing documents and queries
+* Docker Compose for easy deployment
 
 ---
 
-## 2. Project Setup & Installation
+## Quick Start with Docker Compose
 
-### **Clone the repository:**
+### Prerequisites
 
-```
+* Docker and Docker Compose installed
+* HuggingFace API token ([get it here](https://huggingface.co/settings/tokens))
+
+### Setup
+
+**1. Clone the repository:**
+```bash
 git clone https://github.com/<your-username>/Document-query-system.git
 cd Document-query-system
 ```
 
-### **Create virtual environment:**
-
-```
-python -m venv venv
-source venv/bin/activate  (Linux/Mac)
-venv\Scripts\activate   (Windows)
-```
-
-### **Install dependencies:**
-
-```
-pip install -r requirements.txt
+**2. Create `.env` file:**
+```bash
+HUGGINGFACE_API_TOKEN=your_token_here
+POSTGRES_DB=docquery
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+DB_HOST=db
+DB_PORT=5432
 ```
 
-### **Add HuggingFace Token:**
-
-Inside `.env` or Django settings:
-
-```
-HUGGINGFACE_API_TOKEN="your_token_here"
+**3. Start the application:**
+```bash
+docker-compose up -d --build
 ```
 
-### **Run migrations:**
-
+**4. Run migrations:**
+```bash
+docker-compose exec web python manage.py migrate
 ```
-python manage.py migrate
+
+**5. Create superuser (optional):**
+```bash
+docker-compose exec web python manage.py createsuperuser
 ```
 
-### **Start server:**
+**6. Access the application:**
+- Django app: http://localhost:8000
+- Admin panel: http://localhost:8000/admin
 
-```
-python manage.py runserver
+**7. Stop the application:**
+```bash
+docker-compose down
 ```
 
 ---
 
-## 3. How the LangChain Integration Works
+## System Architecture
 
-### **Step 1: Build Vector Index**
+### Backend
+Django with PostgreSQL stores documents (title, content) and queries (questions, LLM answers) [web:20][web:23].
 
-Documents are split into chunks:
+### Retrieval Layer
 
-```
-chunks = text_splitter.split_text(doc.content)
-```
+**SimpleTFIDFRetriever**: Computes TF-IDF vectors and returns top-k documents by cosine similarity [web:13].
 
-Then embeddings are generated and stored in FAISS:
+**Vector Store**: Uses `RecursiveCharacterTextSplitter` for chunking, `sentence-transformers/all-MiniLM-L6-v2` for embeddings, and FAISS for semantic search [web:13].
 
-```
-vectorestore = FAISS.from_texts(texts, embeddings, metadatas=metadatas)
-```
+### LLM Layer
 
-### **Step 2: Retrieve Relevant Chunks**
-
-```
-retriever = vectorestore.as_retriever(search_kwargs={"k": 3})
-relevant_chunks = retriever.get_relevant_documents(question)
-```
-
-### **Step 3: LLM Answer Generation**
-
-Uses the new LangChain pipeline API:
-
-```
-chain = prompt | llm
-answer = chain.invoke({"documents": docs_text, "question": question})
-```
-
-The final answer is then stored in the `Query` model.
+Powered by HuggingFace InferenceClient with `meta-llama/Llama-3.2-1B-Instruct` model through novita provider [web:13][web:26].
 
 ---
 
-## 4. How to Use the System
+## How It Works
 
-### **1. Upload Documents**
+**1. Upload Documents**: Via Django admin or API endpoint
 
-Upload via Django admin panel or a custom upload endpoint.
+**2. Ask Questions**: The system retrieves relevant chunks using TF-IDF and semantic search
 
-### **2. Ask a Question**
+**3. Generate Answers**: LLM processes the chunks and generates contextual answers
 
-Send a question to the corresponding API endpoint. Workflow:
-
-1. SimpleTFIDFRetriever returns the most similar documents
-2. Semantic retriever extracts relevant chunks
-3. LLM processes the chunks and generates the answer
-4. Answer saved into the database
-
-### **3. View Results**
-
-Answers are visible in Django Admin under **Queries**.
+**4. Store Results**: Answers saved in the database for future reference
 
 ---
 
-## 5. API Overview
+## API Usage
 
-### **POST /api/ask/**
+### Ask a Question
 
-Input:
+**Endpoint:** `POST /api/ask/`
 
+**Request:**
 ```json
 {
   "question": "What is deep learning?"
 }
 ```
 
-Output:
-
+**Response:**
 ```json
 {
-  "answer": "Deep learning is ...",
+  "answer": "Deep learning is...",
   "documents_used": ["doc1", "doc2"]
 }
 ```
 
 ---
 
-## 6. Future Improvements
+## Project Structure
 
-* Add streaming responses
-* Add multi-language embeddings
-* Include caching for faster retrieval
+```
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+├── .env
+├── manage.py
+└── app/
+    ├── models.py
+    ├── retriever.py
+    └── views.py
+```
+
+---
+
+## Future Improvements
+
+* Add streaming responses for real-time answers
+* Support multi-language embeddings
+* Implement caching for faster retrieval
+* Add document preprocessing pipeline
 
 ---
 
