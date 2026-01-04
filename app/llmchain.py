@@ -1,38 +1,15 @@
-from langchain_core.prompts import PromptTemplate
-from langchain_huggingface import HuggingFaceEndpoint
+from huggingface_hub import InferenceClient
 from django.conf import settings
 
 from .retriever import SimpleTFIDFRetriever
 
 api_token = settings.HUGGINGFACE_API_TOKEN
 
-llm = HuggingFaceEndpoint(
-    repo_id="google/flan-t5-small",
-    huggingfacehub_api_token=api_token,
-    task="text2text-generation",
-    max_new_tokens=512,
-    temperature=0.3,
+
+client = InferenceClient(
+    provider="novita",
+    api_key=api_token,
 )
-
-template = """
-You are a helpful assistant.
-Use ONLY the following relevant document chunks to answer the question.
-
-Documents:
-{documents}
-
-Question: {question}
-
-Answer accurately using ONLY the documents.
-"""
-
-prompt = PromptTemplate(
-    input_variables=["documents", "question"],
-    template=template
-)
-
-chain = prompt | llm
-
 
 def answer_with_document(question, top_k=3):
     retriever = SimpleTFIDFRetriever()
@@ -41,20 +18,30 @@ def answer_with_document(question, top_k=3):
     if not results:
         return "No relevant documents found.", []
 
-    for idx, (doc, score) in enumerate(results):
-        print(f"[Retriever] doc={doc.title}, score={score}")
-
     docs_text = "\n\n".join([
         f"- ({doc.title}): {doc.content[:200]}... (Score: {score:.4f})"
         for doc, score in results
     ])
 
-    try:
-        answer = chain.invoke({
-            "documents": docs_text,
-            "question": question,
-        })
-    except StopIteration:
-        return "LLM returned nothing (StopIteration).", results
+    prompt_text = f"""You are a helpful assistant.
+    Use ONLY the following relevant document chunks to answer the question.
 
+    Documents:
+    {docs_text}
+
+    Question: {question}
+
+    Answer accurately using ONLY the documents."""
+
+    
+    messages = [{"role": "user", "content": prompt_text}]
+    
+    completion = client.chat.completions.create(
+        model="meta-llama/Llama-3.2-1B-Instruct",
+        messages=messages,
+        max_tokens=512,
+        temperature=0.3,
+    )
+    
+    answer = completion.choices[0].message.content
     return answer, results
