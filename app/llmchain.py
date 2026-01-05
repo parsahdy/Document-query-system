@@ -19,7 +19,7 @@ def answer_with_document(question, top_k=3):
         return "No relevant documents found.", []
 
     docs_text = "\n\n".join([
-        f"- ({doc.title}): {doc.content[:200]}... (Score: {score:.4f})"
+        f"- ({doc.title}): {doc.content}... (Score: {score:.4f})"
         for doc, score in results
     ])
 
@@ -43,5 +43,9 @@ def answer_with_document(question, top_k=3):
         temperature=0.3,
     )
     
+    print(f"Found {len(results)} relevent documents for question: {question}")
+    for doc, score in results:
+        print(f" - {doc.title} {score: {score:.4f}}")
+        
     answer = completion.choices[0].message.content
     return answer, results
