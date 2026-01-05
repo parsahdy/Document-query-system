@@ -7,7 +7,7 @@ from .models import Document
 
 
 class SimpleTFIDFRetriever:
-    def __init__(self, docs=None, min_similarity: float = 0.0):
+    def __init__(self, docs=None, min_similarity: float = 0.2):
         if docs is None:
             docs = Document.objects.all()
 
